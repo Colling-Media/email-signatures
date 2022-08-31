@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Directory API Quickstart</title>
+    <meta charset="utf-8" />
+  </head>
+  <body>
+    <p>Directory API Quickstart</p>
+
+    <!--Add buttons to initiate auth sequence and sign out-->
+   <button id="authorize_button" style="display: none;">Authorize</button>
+    <button id="signout_button" style="display: none;">Sign Out</button>
+    <!-- <input type="button" value="Run" onClick="run()" /> -->
+
+    <pre id="content" style="white-space: pre-wrap;"></pre>
+
+    <!-- <script
+    async
+    defer
+    src="https://apis.google.com/js/api.js"
+    onload="this.onload=function(){};handleClientLoad()"
+    onreadystatechange="if (this.readyState === 'complete') this.onload()"
+    ></script> -->
+    <script type="text/javascript">
+     // Client ID and API key from the Developer Console
+      var CLIENT_ID = '44983054387-h19h98ob5bovem9v20sreevb4b2q85sd.apps.googleusercontent.com';
+      var API_KEY = 'AIzaSyCC_LLg8xuU6t7WxBU1Q5daBcFwCFUqgag';
+
+      // Array of API discovery doc URLs for APIs used by the quickstart
+      var DISCOVERY_DOCS = ["https://www.googleapis.com/discovery/v1/apis/admin/directory_v1/rest"];
+
+      // Authorization scopes required by the API; multiple scopes can be
+      // included, separated by spaces.
+      var SCOPES = 'https://www.googleapis.com/auth/gmail.settings.basic https://www.googleapis.com/auth/gmail.settings.sharing https://www.googleapis.com/auth/admin.directory.group https://www.googleapis.com/auth/admin.directory.user https://mail.google.com/ https://www.googleapis.com/auth/gmail.insert';
+
+      var authorizeButton = document.getElementById('authorize_button');
+      var signoutButton = document.getElementById('signout_button');
+
+      /**
+       * On load, called to load the auth2 library and API client library.
+       */
+      function handleClientLoad() {
+        gapi.load('client:auth2', initClient);
+      }
+
+      /**
+       *  Initializes the API client library and sets up sign-in state
+       *  listeners.
+       */
+      function initClient() {
+        gapi.client.init({
+          apiKey: API_KEY,
+          clientId: CLIENT_ID,
+          discoveryDocs: DISCOVERY_DOCS,
+          scope: SCOPES
+       }).then(function () {
+  //        // Listen for sign-in state changes.
+      gapi.auth2.getAuthInstance().isSignedIn.listen(updateSigninStatus);
+          // Handle the initial sign-in state.
+         updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+          authorizeButton.onclick = handleAuthClick;
+          signoutButton.onclick = handleSignoutClick;
+        }, function(error) {
+          console.log(JSON.stringify(error, null, 2));
+       });
+     }
+
+      /**
+       *  Called when the signed in status changes, to update the UI
+       *  appropriately. After a sign-in, the API is called.
+       */
+      function updateSigninStatus(isSignedIn) {
+        if (isSignedIn) {
+          authorizeButton.style.display = 'none';
+          signoutButton.style.display = 'block';
+          listUsers();
+        } else {
+          authorizeButton.style.display = 'block';
+          signoutButton.style.display = 'none';
+        }
+      }
+
+      /**
+       *  Sign in the user upon button click.
+       */
+      function handleAuthClick(event) {
+        gapi.auth2.getAuthInstance().signIn();
+      }
+
+      /**
+       *  Sign out the user upon button click.
+       */
+      function handleSignoutClick(event) {
+        gapi.auth2.getAuthInstance().signOut();
+      }
+
+      /**
+       * Append a pre element to the body containing the given message
+       * as its text node. Used to display the results of the API call.
+       *
+       * @param {string} message Text to be placed in pre element.
+       */
+      function appendPre(message) {
+        var pre = document.getElementById('content');
+        var textContent = document.createTextNode(message + '\n');
+        pre.appendChild(textContent);
+      }
+
+      /**
+       * Print the first 10 users in the domain.
+       */
+      function listUsers() {
+        let jobTitle = false;
+        gapi.client.directory.users.list({
+          'customer': 'my_customer',
+          'maxResults': 100,
+          'orderBy': 'email'
+        }).then(function(response) {
+          var users = response.result.users;
+          appendPre('Users:');
+
+          if (users && users.length > 0) {
+            for (i = 0; i < users.length; i++) {
+              var user = users[i];
+              if (user.organizations && user.phones) {
+                if (user.organizations[0].title.length > 0) {
+                  userEmail = user.primaryEmail;
+                  jobTitle = user.organizations[0].title;
+                  phoneNumber = user.phones[0].value;
+                  fullName = user.name.fullName;
+                  console.log(fullName);
+                  console.log(userEmail, jobTitle);
+                  document.getElementById("content").innerHTML += `<div dir="ltr"><table cellpadding="0" cellspacing="0" style="color:rgb(255,255,255);vertical-align:-webkit-baseline-middle;font-family:Arial"><tbody><tr><td><table cellpadding="0" cellspacing="0" style="vertical-align:-webkit-baseline-middle;font-family:Arial"><tbody><tr><td style="vertical-align:middle"><h3 color="#000000" style="margin:0px;color:rgb(0,0,0)"><span style="font-size:16px">${fullName}</span></h3><h3 color="#000000" style="margin:0px;color:rgb(0,0,0)"><span style="font-size:12px;font-weight:400">${jobTitle}</span></h3><p color="#000000" style="margin:0px;color:rgb(0,0,0);font-size:12px;line-height:20px"><span>Colling</span> Media</p></td><td width="30"><div style="width:30px"></div></td><td width="1" color="#ef4135" style="width:1px;border-bottom:none;border-left:1px solid rgb(239,65,53)"></td><td width="30"><div style="width:30px"></div></td><td style="vertical-align:middle"><table cellpadding="0" cellspacing="0" style="vertical-align:-webkit-baseline-middle;font-family:Arial"><tbody><tr height="25" style="vertical-align:middle"><td width="30" style="vertical-align:middle"><table cellpadding="0" cellspacing="0" style="vertical-align:-webkit-baseline-middle;font-family:Arial"><tbody><tr><td style="vertical-align:bottom"><span width="11" color="#ef4135" style="display:block;background-color:rgb(239,65,53)"><img width="13" src="https://ci6.googleusercontent.com/proxy/Xq3hntJEq2rjJzR0uWCVm3clsSla7NsI7xyRuy0B6esGxKEs0TJKSCBJd0PTJnw80_-gOm3yRwJoGtSWipm4TqjnmSCEllHm6WPq2oze68mmA8DO6Mj2dGBHroByKflVGCBL0c-wyQ3vCF92=s0-d-e1-ft#https://cdn2.hubspot.net/hubfs/53/tools/email-signature-generator/icons/phone-icon-2x.png" color="#ef4135" style="display:block"></span></td></tr></tbody></table></td><td style="padding:0px;color:rgb(0,0,0)"><span style="color:rgb(34,34,34);font-family:Arial,Helvetica,sans-serif"><a href="tel:${phoneNumber}"style="color:rgb(0,0,0);font-size:12px">${phoneNumber}</a></span><br></td></tr><tr height="25" style="vertical-align:middle"><td width="30" style="vertical-align:middle"><table cellpadding="0" cellspacing="0" style="vertical-align:-webkit-baseline-middle;font-family:Arial"><tbody><tr><td style="vertical-align:bottom"><span width="11" color="#ef4135" style="display:block;background-color:rgb(239,65,53)"><img width="13" src="https://ci5.googleusercontent.com/proxy/u9Dqq8IRTYcA9pxGhij8X1100IBTEBNk6GfgLex2wy5mIUGt4EvtpI__1csTElV-MUMrqJCa2SjWZkRDmYNbTv260GIk6RQb8BWD6Fub4s38olgLolJ-Y0ZMzSkDaCxhCmOgByGso4GxlMz7=s0-d-e1-ft#https://cdn2.hubspot.net/hubfs/53/tools/email-signature-generator/icons/email-icon-2x.png" color="#ef4135" style="display:block"></span></td></tr></tbody></table></td><td style="padding:0px"><a href="mailto:${userEmail}"color="#000000" style="color:rgb(0,0,0);font-size:12px" target="_blank">${userEmail}</a></td></tr><tr height="25" style="vertical-align:middle"><td width="30" style="vertical-align:middle"><table cellpadding="0" cellspacing="0" style="vertical-align:-webkit-baseline-middle;font-family:Arial"><tbody><tr><td style="vertical-align:bottom"><span width="11" color="#ef4135" style="display:block;background-color:rgb(239,65,53)"><img width="13" src="https://ci5.googleusercontent.com/proxy/bDGbdhNSZAZaKWHjXdHMW3DL3PklwLU9F5lSquHVukVuOVNDm_0LSPw8ckOtJwduaqdVOyJnATN5reUqPaX3QjUNCZkwbG2Ac8UdOzrywgI_nREPLk66UFxOhX3uiKMJOqLfWEBJyXQ51Tk=s0-d-e1-ft#https://cdn2.hubspot.net/hubfs/53/tools/email-signature-generator/icons/link-icon-2x.png" color="#ef4135" style="display:block"></span></td></tr></tbody></table></td><td style="padding:0px"><a href="https://collingmedia.com/" color="#000000" style="color:rgb(0,0,0);font-size:12px" target="_blank">collingmedia.com</a></td></tr></tbody></table></td></tr></tbody></table></td></tr><tr><td><table cellpadding="0" cellspacing="0" style="vertical-align:-webkit-baseline-middle;fo  nt-family:Arial;width:429px"><tbody><tr><td height="30"></td></tr><tr><td height="1" color="#ef4135" style="width:429px;border-bottom:1px solid rgb(239,65,53);border-left:none;display:block"></td></tr><tr><td height="30"></td></tr></tbody></table></td></tr><tr><td><table cellpadding="0" cellspacing="0" style="vertical-align:-webkit-baseline-middle;font-family:Arial;width:429px"><tbody><tr><td style="vertical-align:top"><a href="https://collingmedia.com/"><img width="172" src="https://collingmedia.com/wp-content/uploads/2022/08/Colling-Media-Logo-Gif-800-×-400-px-400-×-200-px.gif" style="max-width:172px;display:inline-block"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.linkedin.com/company/colling-media/mycompany/"><img width="36" src="https://collingmedia.com/wp-content/uploads/2022/05/linkedin-brands-15.png" style="max-width:36px;display:inline-block"></a>&nbsp;<a href="https://www.instagram.com/collingmedia/"><img width="36" src="https://collingmedia.com/wp-content/uploads/2022/05/instagram-square-brands-15.png" style="max-width:36px;display:inline-block"></a>&nbsp;<a href="https://www.facebook.com/collingmedia"><img width="36" src="https://collingmedia.com/wp-content/uploads/2022/05/facebook-square-brands-15-1.png" style="max-width:36px;display:inline-block"></a>&nbsp;<a href="https://www.youtube.com/user/collingmedia/"><img width="36" src="https://collingmedia.com/wp-content/uploads/2022/05/youtube-square-brands-15.png" style="max-width:36px;display:inline-block"></a><br><br><br><br><font color="#000000"></span></td></tr></tbody></table></td></tr></tbody></table></div>`
+                  // appendPre(user.primaryEmail + user.name.fullName + phoneNumber + jobTitle);
+                  
+                }
+                if (jobTitle) {
+                  // setSignatures(fullName, userEmail, jobTitle, phoneNumber);
+                }
+              }
+            }
+          } else {
+            appendPre('No users found.');
+          }
+        });
+      }
+      
+    </script>
+
+    <script async defer src="https://apis.google.com/js/api.js"
+      onload="this.onload=function(){};handleClientLoad()"
+      onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script>
+  </body>
+</html>
