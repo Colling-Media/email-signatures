@@ -122,7 +122,7 @@
           if (users && users.length > 0) {
             for (i = 0; i < users.length; i++) {
               var user = users[i];
-              if (user.organizations && user.phones) {
+              if (user.organizations) {
                 if (user.organizations[0].title.length > 0) {
                   userEmail = user.primaryEmail;
                   jobTitle = user.organizations[0].title;
